@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Game : PersistableObject
 {
@@ -19,9 +20,15 @@ public class Game : PersistableObject
     public float CreationSpeed { get; set; }
     float creationPrgoress, destructionProgress;
     public float DestructionSpeed { get; set; }
+
+    void LoadLevel1()
+    {
+        SceneManager.LoadScene("Level 1", LoadSceneMode.Additive);
+    }
     void Awake()
     {
         shapes = new List<Shape>();
+        LoadLevel1();
     }
     void Update()
     {
@@ -49,7 +56,7 @@ public class Game : PersistableObject
         creationPrgoress += Time.deltaTime * CreationSpeed;
         while (creationPrgoress >= 1f)
         {
-            creationPrgoress -= 0f;
+            creationPrgoress -= 1f;
             CreateShape();
         }
 
@@ -61,12 +68,13 @@ public class Game : PersistableObject
         }
     }
 
-    void CreateShape()
+    void CreateShape()                          
     {
        Shape instance = shapeFactory.GetRandom();
         Transform t = instance.transform;
         t.localPosition = Random.insideUnitSphere * 5f;
         t.localRotation = Random.rotation;
+        t.localScale = Random.Range(0.1f, 1f) * Vector3.one;
         // t.LookAt(Vector3.zero;)
         t.localScale = Vector3.one * Random.Range(0.1f, 1f);
         shapes.Add(instance);
@@ -76,7 +84,7 @@ public class Game : PersistableObject
     {
         for (int i = 0; i < shapes.Count; i++)
         {
-            Destroy(shapes[i].gameObject);
+            shapeFactory.Reclaim(shapes[i]);
         }
         shapes.Clear();
     }
@@ -117,7 +125,7 @@ public class Game : PersistableObject
         if (shapes.Count > 0)
         {
             int index = Random.Range(0, shapes.Count);
-            Destroy(shapes[index].gameObject);
+	        shapeFactory.Reclaim(shapes[index]);
             int lastIndex = shapes.Count - 1;
             shapes[index] = shapes[lastIndex];
             shapes.RemoveAt(lastIndex);
