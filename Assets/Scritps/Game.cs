@@ -19,6 +19,7 @@ public class Game : PersistableObject
     public KeyCode destroyKey = KeyCode.X;
 
     public int levelCount;
+    int loadedLevelBuildIndex;
 
     public float CreationSpeed { get; set; }
     float creationPrgoress, destructionProgress;
@@ -27,8 +28,13 @@ public class Game : PersistableObject
     IEnumerator LoadLevel(int levelBuildIndex)
     {
         enabled = false;
+        if (loadedLevelBuildIndex > 0)
+        {
+            yield return SceneManager.UnloadSceneAsync(loadedLevelBuildIndex);
+        }
         yield return SceneManager.LoadSceneAsync(levelBuildIndex, LoadSceneMode.Additive);
         SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(levelBuildIndex));
+        loadedLevelBuildIndex = levelBuildIndex;
         enabled = true;
     }
     void Start()
@@ -40,6 +46,7 @@ public class Game : PersistableObject
             Scene loadedScene = SceneManager.GetSceneAt(i);
             if (loadedScene.name.Contains("Level "))
             {
+                loadedLevelBuildIndex = loadedScene.buildIndex;
                 SceneManager.SetActiveScene(loadedScene);
                 return;
             }
