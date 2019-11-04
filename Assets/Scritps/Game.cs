@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class Game : PersistableObject
@@ -17,18 +18,34 @@ public class Game : PersistableObject
     public KeyCode loadKey = KeyCode.L;
     public KeyCode destroyKey = KeyCode.X;
 
+    public int levelCount;
+
     public float CreationSpeed { get; set; }
     float creationPrgoress, destructionProgress;
     public float DestructionSpeed { get; set; }
 
-    void LoadLevel1()
+    IEnumerator LoadLevel(int levelBuildIndex)
     {
-        SceneManager.LoadScene("Level 1", LoadSceneMode.Additive);
+        enabled = false;
+        yield return SceneManager.LoadSceneAsync(levelBuildIndex, LoadSceneMode.Additive);
+        SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(levelBuildIndex));
+        enabled = true;
     }
-    void Awake()
+    void Start()
     {
         shapes = new List<Shape>();
-        LoadLevel1();
+
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene loadedScene = SceneManager.GetSceneAt(i);
+            if (loadedScene.name.Contains("Level "))
+            {
+                SceneManager.SetActiveScene(loadedScene);
+                return;
+            }
+        }
+
+        StartCoroutine(LoadLevel(1));
     }
     void Update()
     {
@@ -52,6 +69,17 @@ public class Game : PersistableObject
         {
             BeginNewGame();
             storage.Load(this);
+        }
+        else
+        {
+            for (int i = 0; i < levelCount; i++)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha0 + i))
+                {
+                    StartCoroutine(LoadLevel(i));
+                    return;
+                }
+            }
         }
         creationPrgoress += Time.deltaTime * CreationSpeed;
         while (creationPrgoress >= 1f)

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.IO;
 
+
 [DisallowMultipleComponent]
 
 public class PersistableObject : MonoBehaviour
