@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class Game : PersistableObject
 {
-    const int saveVersion = 1;
+    const int saveVersion = 2;
 
     public PersistentStorage storage;
 
@@ -83,6 +83,7 @@ public class Game : PersistableObject
             {
                 if (Input.GetKeyDown(KeyCode.Alpha0 + i))
                 {
+                    BeginNewGame();
                     StartCoroutine(LoadLevel(i));
                     return;
                 }
@@ -126,8 +127,8 @@ public class Game : PersistableObject
 
     public override void Save(GameDataWriter writer)
     {
-        writer.Write(-saveVersion);
         writer.Write(shapes.Count);
+        writer.Write(loadedLevelBuildIndex);
         for (int i = 0; i < shapes.Count; i++)
         {
             writer.Write(shapes[i].ShapeId);
@@ -145,6 +146,7 @@ public class Game : PersistableObject
             return;
         }
         int count = version <= 0 ? - version : reader.ReadInt();
+        StartCoroutine(LoadLevel(version < 2 ? 1 : reader.ReadInt()));
         for (int i = 0; i < count; i++)
         {
             int shapeId = version > 0 ? reader.ReadInt() : 0;
@@ -154,7 +156,6 @@ public class Game : PersistableObject
             shapes.Add(instance);
         }
     }
-
     void DestroyShape()
     {
         if (shapes.Count > 0)
@@ -167,4 +168,3 @@ public class Game : PersistableObject
         }
     }
 }
-
